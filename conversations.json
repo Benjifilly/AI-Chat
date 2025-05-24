@@ -1,0 +1,43 @@
+{
+  "conversations": [
+    {
+      "id": 1,
+      "title": "Hey ça va ?",
+      "messages": [
+        {
+          "role": "system",
+          "content": "Tu es un assistant utile et amical."
+        },
+        {
+          "role": "user",
+          "content": "Hey ça va ?"
+        },
+        {
+          "role": "assistant",
+          "content": " Je vais bien, merci de t'informer ! Comment ça va de ta part ? Peut-être que je peux te donner une petite main dans quelque chose ?"
+        },
+        {
+          "role": "user",
+          "content": "/settings"
+        },
+        {
+          "role": "assistant",
+          "content": " Voici les différentes options de configuration disponibles :\n\n1. Langage : Définit le langage utilisé pour la communication. Par défaut, c'est l'anglais.\n2. Nom d'utilisateur : Définit le nom d'utilisateur que tu souhaite utiliser pour identifier ton assistant.\n3. Choix de la voix : Permet de choisir la voix de votre assistant.\n4. Activation/désactivation du mode sonore : Permet de contrôler si l'assistant va parler ou non.\n5. Activer/désactiver le mode d'apprentissage :"
+        },
+        {
+          "role": "user",
+          "content": "hey N"
+        },
+        {
+          "role": "assistant",
+          "content": " Bonjour ! Quelle peut-être la question ou la demande que tu as pour moi ? Je suis là pour te répondre à toutes tes questions ou pour te donner de l'aide si nécessaire."
+        }
+      ],
+      "lastUpdate": "2025-05-23T22:09:15.048Z",
+      "model": "meta-llama/Llama-3.1-8B-Instruct"
+    }
+  ],
+  "conversationActive": 1,
+  "conversationIdCounter": 2,
+  "modeleChoisi": "mistralai/Mistral-7B-Instruct-v0.3"
+}

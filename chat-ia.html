@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatIA - Conversation avec IA</title>    <link rel="stylesheet" href="chat-ia.css">
+    <link rel="stylesheet" href="notifications.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <!-- Modales pour l'édition et la suppression -->    
+     <div id="rename-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="renameConversation">Renommer la conversation</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="new-conversation-name" data-i18n-placeholder="newConversationNamePlaceholder" placeholder="Nouveau nom...">
+                <input type="hidden" id="conversation-id-to-rename">
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-rename-btn" data-i18n="cancel">Annuler</button>
+                <button id="confirm-rename-btn" data-i18n="rename">Renommer</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="deleteConversation">Supprimer la conversation</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p data-i18n="deleteConfirmMessage">Êtes-vous sûr de vouloir supprimer cette conversation ?</p>
+                <p class="info-hint" style="font-size: 0.85em; color: #888; font-style: italic;" data-i18n="deleteIrreversible"><i class="fas fa-info-circle"></i> Cette action est irréversible.</p>
+                <input type="hidden" id="conversation-id-to-delete">
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-delete-btn" data-i18n="cancel">Annuler</button>
+                <button id="confirm-delete-btn" data-i18n="delete">Supprimer</button>
+            </div>
+        </div>    </div>
+    
+    <!-- Modale des paramètres -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content settings-modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="settings">Paramètres</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="settings-wrapper">
+                <div class="settings-sidebar">
+                    <ul class="settings-menu">
+                        <li class="settings-menu-item active" data-tab="general"><i class="fas fa-cog"></i> <span data-i18n="general">Général</span></li>
+                        <li class="settings-menu-item" data-tab="user"><i class="fas fa-user"></i> <span data-i18n="user">Utilisateur</span></li>
+                    </ul>
+                </div>
+                <div class="settings-content">
+                    <div class="settings-tab active" id="general-tab">
+                        <h4 data-i18n="general">Général</h4>
+
+                        <div class="settings-section">
+                            <h5 data-i18n="theme">Thème</h5>
+                            <div class="settings-option">
+                                <select id="theme-select">
+                                    <option value="dark" data-i18n="darkTheme">Sombre</option>
+                                    <option value="light" data-i18n="lightTheme">Clair</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h5 data-i18n="language">Langue</h5>
+                            <div class="settings-option">
+                                <select id="language-select">
+                                    <option value="fr">Français</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h5 data-i18n="apiKey">API Hugging Face</h5>
+                            <div class="settings-option">
+                                <input type="text" id="api-key-input" data-i18n-placeholder="apiKeyPlaceholder" placeholder="Entrez votre clé API Hugging Face">
+                                <p class="settings-helper" data-i18n="apiKeyHelper">Votre clé API est stockée localement et n'est jamais partagée.</p>
+                                <button id="save-api-key-btn" class="settings-btn" data-i18n="saveApiKey">Enregistrer la clé</button>
+                            </div>                        </div>
+                        
+                        <div class="settings-section danger-zone">
+                            <h5 data-i18n="dangerZone">Zone de danger</h5>
+                            <div class="settings-option">
+                                <button id="settings-clear-conversations-btn" class="danger-btn" data-i18n="clearAllConversations">Effacer toutes les conversations</button>
+                                <p class="settings-helper" data-i18n="clearAllHelper">Cette action supprimera définitivement toutes vos conversations.</p>
+                            </div>
+                        </div>
+                    </div>
+                      <div class="settings-tab" id="user-tab">
+                        <h4 data-i18n="userProfile">Profil utilisateur</h4>
+                        
+                        <div class="settings-section">
+                            <h5 data-i18n="profilePic">Photo de profil</h5>
+                            <div class="settings-option profile-pic-option">
+                                <div id="profile-pic-display" class="profile-pic-large"></div>
+                                <button id="change-profile-pic-btn" class="settings-btn" data-i18n="changeProfilePic">Changer la photo</button>
+                                <input type="file" id="profile-pic-input" accept="image/*" hidden>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <h5 data-i18n="userInfo">Informations utilisateur</h5>
+                            <div class="settings-option">
+                                <label for="username-input" data-i18n="username">Nom d'utilisateur</label>
+                                <input type="text" id="username-input" data-i18n-placeholder="usernamePlaceholder" placeholder="Votre nom d'utilisateur">
+                                <button id="save-username-btn" class="settings-btn" data-i18n="save">Enregistrer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>        <div id="notifications-container" class="notifications-container"></div>
+    
+    <!-- Overlay pour mobile (apparaît quand la sidebar est ouverte) -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    
+    <div class="container">
+        <!-- Bouton pour ré-ouvrir la sidebar placé à l'extérieur de la sidebar -->
+        <button id="collapsed-toggle-btn" class="collapsed-toggle-btn">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <div class="sidebar" id="sidebar"><div class="sidebar-header">
+                <div class="header-actions">
+                    <button id="toggle-sidebar-btn" class="icon-btn" data-i18n-title="toggleSidebar" title="Réduire/Étendre">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="new-chat-btn" class="icon-btn" data-i18n-title="newConversation" title="Nouvelle conversation">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button id="search-btn" class="icon-btn" data-i18n-title="search" title="Rechercher">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>            
+            <div class="sidebar-conversations" id="conversations-list">
+                <!-- Les conversations seront ajoutées ici dynamiquement -->
+            </div><div class="sidebar-footer"><div class="model-selector">
+                    <label for="model-select" data-i18n="modelLabel">Modèle :</label>
+                    <select id="model-select">
+                        <option value="llama-7b" data-i18n="modelLlama7b">Llama 3.1 (8B)</option>
+                        <option value="mistral-7b" data-i18n="modelMistral7b">Mistral (7B)</option>
+                    </select>
+                </div>
+                <div class="api-status" id="api-status">
+                    <span class="status-indicator"></span>
+                    <span class="status-text" data-i18n="apiStatusConnecting">Vérification de l'API...</span>
+                </div>
+                <div class="user-profile">
+                    <div class="profile-pic" id="profile-pic"></div>
+                    <div class="username" id="username-display">Utilisateur</div>
+                    <button id="settings-btn"><i class="fas fa-cog"></i></button>
+                </div>
+            </div>
+        </div>          <div class="main-content">
+            <div class="chat-container" id="chat-container">
+                <!-- Messages seront ajoutés ici dynamiquement -->                
+                 <div class="welcome-screen" id="welcome-screen">
+                    <h1 data-i18n="welcomeTitle">ChatIA</h1>
+                    <p data-i18n="welcomeSubtitle">Votre assistant IA connecté à Hugging Face</p>
+                    <div class="examples">
+                        <h3 data-i18n="examples">Exemples</h3>
+                        <div class="example-cards">
+                            <div class="example-card" data-prompt="Explique-moi la théorie de la relativité d'Einstein comme si j'avais 10 ans." data-i18n-prompt="examplePrompts.0">
+                                "Explique-moi la théorie de la relativité d'Einstein comme si j'avais 10 ans."
+                            </div>
+                            <div class="example-card" data-prompt="Écris un poème sur la beauté de la nature en automne." data-i18n-prompt="examplePrompts.1">
+                                "Écris un poème sur la beauté de la nature en automne."
+                            </div>
+                            <div class="example-card" data-prompt="Comment fonctionne l'apprentissage automatique (machine learning) ?" data-i18n-prompt="examplePrompts.2">
+                                "Comment fonctionne l'apprentissage automatique (machine learning) ?"
+                            </div>
+                            <div class="example-card" data-prompt="Quels sont les plus beaux endroits à visiter en France ?" data-i18n-prompt="examplePrompts.3">
+                                "Quels sont les plus beaux endroits à visiter en France ?"
+                            </div>
+                        </div>
+                    </div>                    <div class="api-info">
+                        <p data-i18n="apiInfo">Ce chat utilise l'API gratuite de Hugging Face pour accéder à de véritables modèles d'IA.</p>
+                        <a href="https://huggingface.co/join" target="_blank" class="api-get-key-btn">
+                            <i class="fas fa-key"></i> <span data-i18n="getApiKey">Obtenir une clé API Hugging Face</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+              <div class="input-area">
+                <div class="input-container">
+                    <textarea id="user-input" data-i18n-placeholder="userInputPlaceholder" placeholder="Posez votre question ici..." rows="1"></textarea>
+                    <button id="send-btn" disabled><i class="fas fa-paper-plane"></i></button>
+                </div>
+                <p class="disclaimer" data-i18n="disclaimer">ChatIA utilise des modèles Hugging Face. Les réponses sont générées en temps réel.</p>
+            </div>
+        </div>    </div>
+    
+    <!-- Modal de recherche -->    <div id="search-modal" class="modal search-modal">
+        <div class="search-modal-content">
+            <div class="search-modal-header">
+                <div class="search-input-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="search-modal-input" data-i18n-placeholder="searchPlaceholder" placeholder="Rechercher des conversations..." autofocus>
+                </div>
+                <button id="close-search-modal" class="icon-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="search-modal-body">
+                <div class="search-results" id="search-results">
+                    <!-- Les résultats de recherche seront ajoutés ici -->
+                    <div class="search-placeholder">
+                        <i class="fas fa-search search-placeholder-icon"></i>
+                        <p data-i18n="startTypingToSearch">Commencez à taper pour rechercher des conversations</p>
+                    </div>
+                </div>
+            </div>
+    </div>
+    </div>    
+    
+    <!-- Modal de confirmation pour effacer toutes les conversations -->
+    <div id="clear-conversations-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="clearAllConversations">Effacer toutes les conversations</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p data-i18n="clearConversationsModalConfirm">Êtes-vous sûr de vouloir effacer toutes les conversations ? Cette action est irréversible.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-clear-btn" data-i18n="cancel">Annuler</button>
+                <button id="confirm-clear-btn" class="danger-btn" data-i18n="clearAll">Effacer tout</button>
+            </div>
+        </div>
+    </div>    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="translations.js"></script>
+    <script src="notifications.js"></script>    
+    <script src="chat-ia.js"></script>
+</body>
+</html>
